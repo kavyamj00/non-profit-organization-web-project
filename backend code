@@ -1,0 +1,47 @@
+npm init
+npm install express --save
+touch app.js
+
+
+
+const express = require('express');
+const bodyParser = require('body-parser');
+const fs = require('fs');
+const path = require('path');
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+
+app.post('/submit-contact-form', (req, res) => {
+  const { name, email, message } = req.body;
+  const submission = { name, email, message };
+
+  
+  let submissions = [];
+  try {
+    const data = fs.readFileSync('submissions.json', 'utf8');
+    submissions = JSON.parse(data);
+  } catch (err) {
+    
+  }
+
+  // Add the new submission
+  submissions.push(submission);
+
+  // Write the updated submissions back to the file
+  fs.writeFileSync('submissions.json', JSON.stringify(submissions, null, 2));
+
+  res.json({ success: true, message: 'Submission successful' });
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
